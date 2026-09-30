@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio de Posibilidad - Subjuntivo vs. Indicativo</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        outfit: ['Outfit', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        radar: {
+                            50: '#ecfeff',
+                            100: '#cffaff',
+                            200: '#a5f3fc',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                            950: '#083344',
+                        },
+                        amber: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(207, 250, 254, 0.5);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 40px -15px rgba(6, 182, 212, 0.08);
+            transition: all 0.3s ease;
+        }
+        .dark .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            border-color: rgba(30, 41, 59, 0.8);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        }
+
+        .tab-btn {
+            border-radius: 1rem;
+            font-weight: 700;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tab-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .select-radar {
+            border: 2px solid #cbd5e1;
+            border-radius: 0.875rem;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+        .select-radar:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+        }
+        .dark .select-radar {
+            background-color: #1e293b;
+            border-color: #334155;
+            color: #ffffff;
+        }
+
+        .correct-card {
+            border-color: #22c55e !important;
+            background-color: #f0fdf4 !important;
+        }
+        .dark .correct-card {
+            background-color: #052e16 !important;
+        }
+
+        .incorrect-card {
+            border-color: #f43f5e !important;
+            background-color: #fff1f2 !important;
+        }
+        .dark .incorrect-card {
+            background-color: #4c0519 !important;
+        }
+
+        .bubble-thought {
+            position: relative;
+            background: #ffffff;
+            border-radius: 1.25rem;
+            border: 2px solid #a5f3fc;
+        }
+        .dark .bubble-thought {
+            background: #1e293b;
+            border-color: #0e7490;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4">
+            
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-tr from-radar-600 to-radar-400 text-white rounded-2xl flex items-center justify-center font-outfit text-2xl shadow-lg shadow-radar-500/30">
+                    <i class="fa-solid fa-cloud-bolt"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black font-outfit text-slate-900 dark:text-white leading-none">
+                        Radar de Hipótesis
+                    </h1>
+                    <span class="text-xs font-bold text-radar-600 dark:text-radar-400 uppercase tracking-wider">Expresiones de Posibilidad</span>
+                </div>
+            </div>
+
+            <!-- Tabs de Navegación -->
+            <div class="flex items-center gap-2">
+                <button id="nav-theory" onclick="switchSection('theory')" class="tab-btn bg-radar-600 text-white px-4 py-2.5 text-xs sm:text-sm flex items-center gap-2 shadow-md">
+                    <i class="fa-solid fa-compass"></i>
+                    <span class="hidden md:inline">1. Teoría & Barómetro</span>
+                </button>
+                <button id="nav-match" onclick="switchSection('match')" class="tab-btn bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 text-xs sm:text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-link"></i>
+                    <span class="hidden md:inline">2. Emparejar Situaciones (10)</span>
+                </button>
+                <button id="nav-predictor" onclick="switchSection('predictor')" class="tab-btn bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 text-xs sm:text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span class="hidden md:inline">3. Predictor de Futuro (10)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex-grow w-full">
+
+        <!-- Marcador Global -->
+        <div class="glass-panel p-6 mb-8 bg-gradient-to-r from-radar-950 via-slate-900 to-slate-950 text-white border-none relative overflow-hidden">
+            <div class="absolute -right-6 -bottom-6 opacity-10 text-9xl font-black pointer-events-none">🔮</div>
+            
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-2xl bg-radar-500/20 border border-radar-400/30 flex items-center justify-center text-3xl shrink-0">
+                        💭
+                    </div>
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-radar-500/20 border border-radar-400/30 text-radar-300 text-xs font-bold uppercase tracking-wider mb-1">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> ¿Seguridad o Duda?
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-bold font-outfit">Posibilidad = Subjuntivo / Certidumbre = Indicativo</h2>
+                        <p class="text-xs sm:text-sm text-radar-200/80 max-w-xl">
+                            Usa conectores de hipótesis para expresar ideas probables. ¡Entrena tu intuición lingüística!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Dashboard Status Bar -->
+                <div class="w-full md:w-60 bg-white/10 backdrop-blur-md border border-white/10 p-4 rounded-2xl text-center shrink-0">
+                    <span class="text-xs font-bold uppercase tracking-wider text-radar-200 block mb-1">Progreso Total</span>
+                    <div class="text-2xl font-black font-outfit text-radar-300" id="total-score-text">0 / 20 Aciertos</div>
+                    <div class="w-full bg-slate-900/60 h-3 rounded-full mt-2 overflow-hidden p-0.5">
+                        <div id="total-progress-bar" class="bg-radar-500 h-full rounded-full transition-all duration-500 w-0"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 1: TEORÍA Y BARÓMETRO DE POSIBILIDAD -->
+        <section id="sec-theory" class="space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Panel Principal de Teoría (2 Cols) -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="glass-panel p-6 sm:p-8">
+                        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 mb-6">
+                            <h3 class="text-xl font-bold font-outfit text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-lightbulb text-radar-500"></i> ¿Cómo expresamos Posibilidad? (English: <i>Maybe</i>)
+                            </h3>
+                            <span class="px-3 py-1 bg-radar-500/10 text-radar-600 dark:text-radar-300 font-bold text-xs rounded-full">
+                                Regla de Oro
+                            </span>
+                        </div>
+
+                        <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-6 font-medium">
+                            Cuando no estamos 100% seguros de si algo pasará o no, utilizamos <strong>conectores de posibilidad</strong>. La regla general recomendada para evitar errores es usar siempre el <span class="text-radar-600 dark:text-radar-400 font-bold underline decoration-wavy">Subjuntivo</span> después de estas expresiones.
+                        </p>
+
+                        <!-- Tarjetas de Conectores -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                            <div class="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-center">
+                                <span class="text-xs text-slate-400 block font-bold uppercase mb-1">Estructura Fija con "QUE"</span>
+                                <div class="text-xs font-extrabold text-radar-600 dark:text-radar-400 space-y-1">
+                                    <p>Es posible que...</p>
+                                    <p>Es probable que...</p>
+                                    <p>Puede que...</p>
+                                    <p>No es seguro que...</p>
+                                </div>
+                                <span class="mt-2 inline-block text-[10px] bg-radar-500/20 text-radar-700 dark:text-radar-300 font-bold px-2 py-0.5 rounded">¡Siempre Subjuntivo!</span>
+                            </div>
+
+                            <div class="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-center">
+                                <span class="text-xs text-slate-400 block font-bold uppercase mb-1">Adverbios Libres</span>
+                                <div class="text-xs font-extrabold text-amber-500 space-y-1">
+                                    <p>Quizás... / Quizá...</p>
+                                    <p>Tal vez...</p>
+                                    <p>Posiblemente...</p>
+                                    <p>Probablemente...</p>
+                                </div>
+                                <span class="mt-2 inline-block text-[10px] bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold px-2 py-0.5 rounded">Recomendado: Subjuntivo</span>
+                            </div>
+
+                            <div class="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-center">
+                                <span class="text-xs text-slate-400 block font-bold uppercase mb-1">Ejemplo Ilustrativo</span>
+                                <div class="bubble-thought p-3 my-1">
+                                    <p class="text-xs font-bold text-slate-800 dark:text-slate-100 italic">
+                                        "¿Y mis prendas? Quizás <span class="text-radar-600 dark:text-radar-400 font-black">sean</span> otros calcetines."
+                                    </p>
+                                </div>
+                                <span class="text-[10px] text-slate-400">Duda / Hipótesis</span>
+                            </div>
+                        </div>
+
+                        <!-- Nota Pedagógica / Secreto de Hablante Nativo -->
+                        <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs space-y-1">
+                            <strong class="font-bold flex items-center gap-1.5 text-sm">
+                                <i class="fa-solid fa-circle-info"></i> Ojo con el Indicativo en la vida real:
+                            </strong>
+                            <p>
+                                Es cierto que a veces escuchamos el <strong>Indicativo</strong> con <i>Quizás, Tal vez o Probablemente</i> (ej: <i>"Quizás está en casa"</i>). Cuando un hablante lo usa, indica que la posibilidad es muy alta (casi una certeza). Sin embargo, <strong>tu mejor estrategia es usar siempre el Subjuntivo</strong> para sonar natural y no cometer errores.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visual Barómetro / Indicador (1 Col) -->
+                <div class="space-y-6">
+                    <div class="glass-panel p-6 bg-slate-900 text-white border-none space-y-4">
+                        <h4 class="font-outfit font-bold text-base text-radar-400 flex items-center gap-2">
+                            <i class="fa-solid fa-gauge-high"></i> El Barómetro de la Certeza
+                        </h4>
+                        
+                        <div class="space-y-3 text-xs">
+                            <div class="p-3 rounded-xl bg-slate-800 border border-slate-700">
+                                <div class="flex justify-between font-bold text-emerald-400 mb-1">
+                                    <span>100% Hecho Real</span>
+                                    <span>INDICATIVO</span>
+                                </div>
+                                <p class="text-slate-400">"Sé que está en su oficina."</p>
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-slate-800 border border-slate-700">
+                                <div class="flex justify-between font-bold text-amber-400 mb-1">
+                                    <span>~70% Altísima Probabilidad</span>
+                                    <span>INDICATIVO / SUBJUNTIVO</span>
+                                </div>
+                                <p class="text-slate-400">"Probablemente está / esté en su oficina."</p>
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-slate-800 border border-slate-700">
+                                <div class="flex justify-between font-bold text-radar-400 mb-1">
+                                    <span>~50% Duda / Posibilidad</span>
+                                    <span>SUBJUNTIVO</span>
+                                </div>
+                                <p class="text-slate-400">"Puede que esté / Es probable que esté..."</p>
+                            </div>
+                        </div>
+
+                        <button onclick="switchSection('match')" class="w-full tab-btn bg-radar-600 text-white py-3.5 font-outfit font-bold text-sm shadow-lg shadow-radar-600/30 hover:bg-radar-700 flex items-center justify-center gap-2 mt-4">
+                            <span>Comenzar Práctica (10 Ejercicios)</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: EMPAREJAR HIPÓTESIS Y DIÁLOGOS (10 EJERCICIOS) -->
+        <section id="sec-match" class="space-y-8 hidden">
+            <div class="glass-panel p-6 sm:p-8">
+                
+                <div class="flex items-center justify-between flex-wrap gap-4 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
+                    <div>
+                        <span class="bg-radar-500/10 text-radar-700 dark:text-radar-300 px-3 py-1 rounded-full font-bold text-xs uppercase tracking-wider">
+                            Apartado 2 • Deducción de Situaciones
+                        </span>
+                        <h3 class="text-2xl font-bold font-outfit text-slate-900 dark:text-white mt-1">
+                            Une cada deducción (columna izquierda) con la frase que la provoca (10)
+                        </h3>
+                    </div>
+                </div>
+
+                <!-- Contenedor de 10 ejercicios de emparejamiento -->
+                <div class="grid grid-cols-1 gap-4" id="match-questions-container">
+                    <!-- Inyectado mediante Javascript -->
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="flex flex-wrap items-center justify-center gap-4 mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+                    <button onclick="checkMatchSection()" class="tab-btn bg-radar-600 text-white px-8 py-3.5 font-outfit font-bold text-base shadow-lg shadow-radar-600/30 hover:bg-radar-700">
+                        <i class="fa-solid fa-square-check mr-2"></i> Verificar Emparejamientos
+                    </button>
+                    <button onclick="resetMatchSection()" class="tab-btn bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-6 py-3.5 font-bold text-sm">
+                        <i class="fa-solid fa-rotate-left mr-2"></i> Reiniciar
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: ACTIVIDAD INÉDITA - "EL PREDICTOR DE FUTURO" (10 EJERCICIOS) -->
+        <section id="sec-predictor" class="space-y-8 hidden">
+            <div class="glass-panel p-6 sm:p-8">
+                
+                <div class="flex items-center justify-between flex-wrap gap-4 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
+                    <div>
+                        <span class="bg-amber-500/20 text-amber-600 dark:text-amber-400 px-3 py-1 rounded-full font-bold text-xs uppercase tracking-wider">
+                            Apartado 3 • Desafío de Matiz e Hipótesis
+                        </span>
+                        <h3 class="text-2xl font-bold font-outfit text-slate-900 dark:text-white mt-1">
+                            El Predictor: Transforma certezas en posibilidades (10)
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Transforma la afirmación en una hipótesis seleccionando el conector adecuado y conjugando el verbo en <strong>Subjuntivo</strong>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Contenedor de 10 ejercicios interactivos -->
+                <div class="space-y-4" id="predictor-questions-container">
+                    <!-- Inyectado mediante Javascript -->
+                </div>
+
+                <!-- Botón de Evaluación -->
+                <div class="flex flex-wrap items-center justify-center gap-4 mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+                    <button onclick="checkPredictorSection()" class="tab-btn bg-radar-600 text-white px-8 py-3.5 font-outfit font-bold text-base shadow-lg shadow-radar-600/30 hover:bg-radar-700">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Evaluar Hipótesis
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        <p>Español Lengua Extranjera (ELE) • Material Interactivo para la Posibilidad y el Subjuntivo</p>
+    </footer>
+
+    <script>
+        // Opciones de respuesta para el ejercicio de emparejamiento (A - J)
+        const matchOptions = [
+            { code: "a", text: "a) «Cariño, he vomitado, voy a hacerme el test de embarazo.»" },
+            { code: "b", text: "b) «Por favor, muéstrele el billete al revisor.»" },
+            { code: "c", text: "c) «Espero que dejes el informe encima de mi escritorio hoy.»" },
+            { code: "d", text: "d) «Lo siento mucho, era buena persona, le echaremos de menos.»" },
+            { code: "e", text: "e) «Quiero que vuelvas a casa antes de las once de la noche.»" },
+            { code: "f", text: "f) «Como no hagas los deberes más a menudo vas a suspender.»" },
+            { code: "g", text: "g) «¡Mira esa mancha en la pared y ese olor a humedad!»" },
+            { code: "h", text: "h) «¿Por qué lleva puestas unas gafas de sol dentro del cine?»" },
+            { code: "i", text: "i) «Tiene tres maletas grandes y el pasaporte en la mano.»" },
+            { code: "j", text: "j) «Está mirando la carta del restaurante con cara de hambre.»" }
+        ];
+
+        // Datos del Apartado 2: 6 originales de la guía + 4 adicionales para completar 10
+        const matchData = [
+            { id: "m1", hypothesis: "1. Es probable que sea su madre o su padre.", correct: "e" },
+            { id: "m2", hypothesis: "2. Quizás está hablando su jefe.", correct: "c" },
+            { id: "m3", hypothesis: "3. Puede que vaya a tener un hijo.", correct: "a" },
+            { id: "m4", hypothesis: "4. Posiblemente su profesor le esté diciendo algo.", correct: "f" },
+            { id: "m5", hypothesis: "5. Tal vez se encuentre en un transporte público.", correct: "b" },
+            { id: "m6", hypothesis: "6. Probablemente esté en un funeral.", correct: "d" },
+            { id: "m7", hypothesis: "7. Es posible que haya una fuga de agua.", correct: "g" },
+            { id: "m8", hypothesis: "8. Quizá quiera ocultar sus ojos cansados.", correct: "h" },
+            { id: "m9", hypothesis: "9. Probablemente vaya a viajar al extranjero.", correct: "i" },
+            { id: "m10", hypothesis: "10. Puede que pida el plato más grande de la carta.", correct: "j" }
+        ];
+
+        // Datos del Apartado 3: 10 ejercicios de Transformación y Matiz (Predicción de Futuro)
+        const predictorData = [
+            {
+                id: "p1",
+                original: "Afirmación rotunda: «Mañana llueve mucho en la ciudad.»",
+                target: "llueva",
+                connector: "Es probable que",
+                prefix: "Es probable que mañana",
+                suffix: "mucho en la ciudad.",
+                hint: "Verbo: llover (o->ue)"
+            },
+            {
+                id: "p2",
+                original: "Afirmación rotunda: «Carlos tiene las llaves de la oficina.»",
+                target: "tenga",
+                connector: "Puede que",
+                prefix: "Puede que Carlos",
+                suffix: "las llaves de la oficina.",
+                hint: "Verbo: tener (él)"
+            },
+            {
+                id: "p3",
+                original: "Afirmación rotunda: «Los estudiantes vienen mañana temprano.»",
+                target: "vengan",
+                connector: "Es posible que",
+                prefix: "Es posible que los estudiantes",
+                suffix: "mañana temprano.",
+                hint: "Verbo: venir (ellos)"
+            },
+            {
+                id: "p4",
+                original: "Afirmación rotunda: «Nosotros hacemos una fiesta el sábado.»",
+                target: "hagamos",
+                connector: "Quizás",
+                prefix: "Quizás nosotros",
+                suffix: "una fiesta el sábado.",
+                hint: "Verbo: hacer (nosotros)"
+            },
+            {
+                id: "p5",
+                original: "Afirmación rotunda: «Tú sabes la respuesta correcta del examen.»",
+                target: "sepas",
+                connector: "Tal vez",
+                prefix: "Tal vez tú",
+                suffix: "la respuesta correcta.",
+                hint: "Verbo: saber (tú)"
+            },
+            {
+                id: "p6",
+                original: "Afirmación rotunda: «La tienda abre los domingos por la tarde.»",
+                target: "abra",
+                connector: "No es seguro que",
+                prefix: "No es seguro que la tienda",
+                suffix: "los domingos.",
+                hint: "Verbo: abrir (ella)"
+            },
+            {
+                id: "p7",
+                original: "Afirmación rotunda: «Ellos van al concierto este fin de semana.»",
+                target: "vayan",
+                connector: "Probablemente",
+                prefix: "Probablemente ellos",
+                suffix: "al concierto este fin de semana.",
+                hint: "Verbo: ir (ellos)"
+            },
+            {
+                id: "p8",
+                original: "Afirmación rotunda: «Ella quiere salir con nosotros a cenar.»",
+                target: "quiera",
+                connector: "Es posible que",
+                prefix: "Es posible que ella",
+                suffix: "salir con nosotros a cenar.",
+                hint: "Verbo: querer (e->ie)"
+            },
+            {
+                id: "p9",
+                original: "Afirmación rotunda: «Vosotros podéis resolver el enigma fácil.»",
+                target: "podais",
+                alt: "podáis",
+                connector: "Puede que",
+                prefix: "Puede que vosotros",
+                suffix: "resolver el enigma fácil.",
+                hint: "Verbo: poder (vosotros)"
+            },
+            {
+                id: "p10",
+                original: "Afirmación rotunda: «El tren llega a tiempo a la estación.»",
+                target: "llegue",
+                connector: "Quizá",
+                prefix: "Quizá el tren",
+                suffix: "a tiempo a la estación.",
+                hint: "Verbo: llegar (g->gu)"
+            }
+        ];
+
+        // Cambiar entre secciones
+        function switchSection(sec) {
+            document.getElementById('sec-theory').classList.add('hidden');
+            document.getElementById('sec-match').classList.add('hidden');
+            document.getElementById('sec-predictor').classList.add('hidden');
+
+            const tabInactive = "tab-btn bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 text-xs sm:text-sm flex items-center gap-2";
+            const tabActive = "tab-btn bg-radar-600 text-white px-4 py-2.5 text-xs sm:text-sm flex items-center gap-2 shadow-md";
+
+            document.getElementById('nav-theory').className = tabInactive;
+            document.getElementById('nav-match').className = tabInactive;
+            document.getElementById('nav-predictor').className = tabInactive;
+
+            if (sec === 'theory') {
+                document.getElementById('sec-theory').classList.remove('hidden');
+                document.getElementById('nav-theory').className = tabActive;
+            } else if (sec === 'match') {
+                document.getElementById('sec-match').classList.remove('hidden');
+                document.getElementById('nav-match').className = tabActive;
+            } else if (sec === 'predictor') {
+                document.getElementById('sec-predictor').classList.remove('hidden');
+                document.getElementById('nav-predictor').className = tabActive;
+            }
+        }
+
+        // Renderizar Apartado 2
+        function renderMatchSection() {
+            const container = document.getElementById('match-questions-container');
+            container.innerHTML = '';
+
+            matchData.forEach(item => {
+                const card = document.createElement('div');
+                card.id = `card_${item.id}`;
+                card.className = "p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all";
+
+                let optionsHtml = `<option value="">-- Selecciona el diálogo de origen --</option>`;
+                matchOptions.forEach(opt => {
+                    optionsHtml += `<option value="${opt.code}">${opt.text}</option>`;
+                });
+
+                card.innerHTML = `
+                    <div class="flex-1">
+                        <span class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">${item.hypothesis}</span>
+                    </div>
+                    <div class="w-full md:w-auto">
+                        <select id="${item.id}" class="select-radar w-full md:w-96 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200">
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Renderizar Apartado 3
+        function renderPredictorSection() {
+            const container = document.getElementById('predictor-questions-container');
+            container.innerHTML = '';
+
+            predictorData.forEach(item => {
+                const card = document.createElement('div');
+                card.id = `card_${item.id}`;
+                card.className = "p-5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 transition-all";
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-400">
+                        <span><i class="fa-solid fa-bullhorn text-amber-500 mr-1"></i> ${item.original}</span>
+                        <span class="bg-radar-500/10 text-radar-600 dark:text-radar-300 px-2.5 py-0.5 rounded-md">${item.hint}</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 text-sm sm:text-base font-semibold">
+                        <span class="text-radar-600 dark:text-radar-400 font-extrabold">${item.prefix}</span>
+                        <input type="text" id="${item.id}" class="select-radar px-3 py-1.5 w-36 text-center text-sm font-bold" placeholder="...">
+                        <span class="text-slate-800 dark:text-slate-200">${item.suffix}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Normalizar texto para tildes
+        function normalizeText(str) {
+            return str.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        }
+
+        // Validar Apartado 2
+        function checkMatchSection() {
+            let correct = 0;
+
+            matchData.forEach(item => {
+                const select = document.getElementById(item.id);
+                const card = document.getElementById(`card_${item.id}`);
+
+                if (select.value === item.correct) {
+                    card.className = "p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all correct-card";
+                    correct++;
+                } else {
+                    card.className = "p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all incorrect-card";
+                }
+            });
+
+            updateOverallProgress();
+
+            if (correct === matchData.length) {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        function resetMatchSection() {
+            matchData.forEach(item => {
+                const select = document.getElementById(item.id);
+                const card = document.getElementById(`card_${item.id}`);
+                select.value = "";
+                card.className = "p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all";
+            });
+            updateOverallProgress();
+        }
+
+        // Validar Apartado 3
+        function checkPredictorSection() {
+            let correct = 0;
+
+            predictorData.forEach(item => {
+                const input = document.getElementById(item.id);
+                const card = document.getElementById(`card_${item.id}`);
+                const val = normalizeText(input.value);
+                const targetNorm = normalizeText(item.target);
+                const altNorm = item.alt ? normalizeText(item.alt) : null;
+
+                if (val === targetNorm || (altNorm && val === altNorm)) {
+                    card.className = "p-5 bg-slate-50 dark:bg-slate-900 rounded-2xl border space-y-3 transition-all correct-card";
+                    correct++;
+                } else {
+                    card.className = "p-5 bg-slate-50 dark:bg-slate-900 rounded-2xl border space-y-3 transition-all incorrect-card";
+                }
+            });
+
+            updateOverallProgress();
+
+            if (correct === predictorData.length) {
+                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            }
+        }
+
+        // Actualizar contador global
+        function updateOverallProgress() {
+            let matchCorrect = 0;
+            matchData.forEach(item => {
+                const select = document.getElementById(item.id);
+                if (select && select.value === item.correct) matchCorrect++;
+            });
+
+            let predictorCorrect = 0;
+            predictorData.forEach(item => {
+                const input = document.getElementById(item.id);
+                if (input) {
+                    const val = normalizeText(input.value);
+                    const targetNorm = normalizeText(item.target);
+                    const altNorm = item.alt ? normalizeText(item.alt) : null;
+                    if (val === targetNorm || (altNorm && val === altNorm)) predictorCorrect++;
+                }
+            });
+
+            const totalScore = matchCorrect + predictorCorrect;
+            const totalMax = matchData.length + predictorData.length;
+            const pct = Math.round((totalScore / totalMax) * 100);
+
+            document.getElementById('total-score-text').innerText = `${totalScore} / ${totalMax} Aciertos`;
+            document.getElementById('total-progress-bar').style.width = `${pct}%`;
+        }
+
+        window.onload = function() {
+            renderMatchSection();
+            renderPredictorSection();
+        };
+    </script>
+</body>
+</html>
